@@ -1,168 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Skribl Collaborative Drawing</title>
+  <title>Simple Discord Activity</title>
   <style>
     html, body {
-      margin: 0; padding: 0; overflow: hidden; height: 100%;
-      background: #1e1e2f;
+      margin: 0; padding: 0; height: 100%; background: white;
+      display: flex; justify-content: center; align-items: center;
+    }
+    img {
+      max-width: 100%; max-height: 100%;
       user-select: none;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #eee;
-    }
-    canvas {
-      position: fixed;
-      top: 0; left: 0;
-      /* no CSS width/height */
-      z-index: 0;
-      cursor: crosshair;
-      border: 1px solid #444;
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-    #controls {
-      position: fixed;
-      top: 20px; left: 20px;
-      background: rgba(30,30,47,0.85);
-      padding: 12px 18px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.8);
-      z-index: 10;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-    #controls label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    input[type="color"] {
-      border: none;
-      width: 36px;
-      height: 36px;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-    input[type="range"] {
-      width: 120px;
-      cursor: pointer;
-      accent-color: #7f5af0;
-      height: 6px;
-      border-radius: 4px;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-
-<div id="controls">
-  <label>Color: <input type="color" id="color" value="#000000"></label>
-  <label>Brush Size: <input type="range" id="size" min="1" max="30" value="5"></label>
-</div>
-
-<canvas id="canvas"></canvas>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCscQUyJiB24BB46DArny-YLG58ogGBCOc",
-    authDomain: "skribl-49a8e.firebaseapp.com",
-    databaseURL: "https://skribl-49a8e-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "skribl-49a8e",
-    storageBucket: "skribl-49a8e.appspot.com",
-    messagingSenderId: "1006776155045",
-    appId: "1:1006776155045:web:9cc6f03c60379cb30a864c",
-    measurementId: "G-EZ8EYJ58ZC"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  console.log("Firebase app initialized:", app);
-
-  const database = getDatabase(app);
-  const drawingsRef = ref(database, "drawings");
-
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-  const colorPicker = document.getElementById("color");
-  const sizePicker = document.getElementById("size");
-
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    console.log(`Canvas resized to ${canvas.width}x${canvas.height}`);
-  }
-  window.addEventListener("resize", resize);
-  resize();
-
-  function getMousePos(evt) {
-    const rect = canvas.getBoundingClientRect();
-    const pos = {
-      x: evt.clientX - rect.left,
-      y: evt.clientY - rect.top,
-    };
-    // console.log("Mouse Pos:", pos);  // Uncomment if you want lots of logs
-    return pos;
-  }
-
-  let drawing = false;
-  let lastX = 0;
-  let lastY = 0;
-
-  canvas.addEventListener("mousedown", (e) => {
-    drawing = true;
-    const pos = getMousePos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-    console.log("mousedown at", lastX, lastY);
-  });
-
-  canvas.addEventListener("mouseup", () => {
-    drawing = false;
-    console.log("mouseup");
-  });
-
-  canvas.addEventListener("mouseout", () => {
-    drawing = false;
-    console.log("mouseout");
-  });
-
-  canvas.addEventListener("mousemove", (e) => {
-    if (!drawing) return;
-    const pos = getMousePos(e);
-    const color = colorPicker.value;
-    const size = +sizePicker.value;
-    console.log("drawing line from", lastX, lastY, "to", pos.x, pos.y);
-    drawLine(lastX, lastY, pos.x, pos.y, color, size, true);
-    lastX = pos.x;
-    lastY = pos.y;
-  });
-
-  function drawLine(x1, y1, x2, y2, color, size, sendToDb) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = size;
-    ctx.lineCap = "round";
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    if (sendToDb) {
-      push(drawingsRef, { x1, y1, x2, y2, color, size })
-        .then(() => console.log("Data pushed to Firebase"))
-        .catch(err => console.error("Firebase push error:", err));
-    }
-  }
-
-  onChildAdded(drawingsRef, (snapshot) => {
-    const { x1, y1, x2, y2, color, size } = snapshot.val();
-    // Avoid drawing the same line you just pushed (optional optimization)
-    drawLine(x1, y1, x2, y2, color, size, false);
-  });
-</script>
-
+  <img src="https://i.gifer.com/F4gE.gif" alt="Centered GIF" />
 </body>
 </html>
