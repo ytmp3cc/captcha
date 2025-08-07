@@ -3,19 +3,23 @@
 <head>
   <title>Skribl Collaborative Drawing</title>
   <style>
-    body {
+    html, body {
+      margin: 0; padding: 0; overflow: hidden; height: 100%;
       background: #1e1e2f;
+      user-select: none;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #eee;
-      user-select: none;
-      margin: 0; padding: 0; height: 100vh;
-      overflow: hidden;
     }
-
+    canvas {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 0;
+      /* REMOVE width/height in CSS */
+    }
     #controls {
       position: fixed;
       top: 20px; left: 20px;
-      background: rgba(30, 30, 47, 0.85);
+      background: rgba(30,30,47,0.85);
       padding: 12px 18px;
       border-radius: 12px;
       box-shadow: 0 0 12px rgba(0,0,0,0.8);
@@ -24,7 +28,6 @@
       gap: 15px;
       align-items: center;
     }
-
     #controls label {
       display: flex;
       align-items: center;
@@ -32,7 +35,6 @@
       font-weight: 600;
       font-size: 14px;
     }
-
     input[type="color"] {
       border: none;
       width: 36px;
@@ -40,7 +42,6 @@
       cursor: pointer;
       border-radius: 6px;
     }
-
     input[type="range"] {
       width: 120px;
       cursor: pointer;
@@ -48,24 +49,17 @@
       height: 6px;
       border-radius: 4px;
     }
-
-    canvas {
-      position: fixed;
-      top: 0; left: 0;
-      z-index: 0;
-    }
   </style>
 </head>
 <body>
 
 <div id="controls">
-  <label>Color: <input type="color" id="color" value="#000000" /></label>
-  <label>Brush Size: <input type="range" id="size" min="1" max="30" value="5" /></label>
+  <label>Color: <input type="color" id="color" value="#000000"></label>
+  <label>Brush Size: <input type="range" id="size" min="1" max="30" value="5"></label>
 </div>
 
 <canvas id="canvas"></canvas>
 
-<!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
   import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-database.js";
@@ -85,21 +79,21 @@
   const database = getDatabase(app);
   const drawingsRef = ref(database, "drawings");
 
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  const colorPicker = document.getElementById('color');
-  const sizePicker = document.getElementById('size');
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const colorPicker = document.getElementById("color");
+  const sizePicker = document.getElementById("size");
 
-  // Resize canvas to full window size
+  // Set canvas pixel size to window size
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
-  window.addEventListener('resize', resize);
+  window.addEventListener("resize", resize);
   resize();
 
-  // Helper: get mouse position relative to canvas
-  function getMousePos(canvas, evt) {
+  // Get mouse position relative to canvas
+  function getMousePos(evt) {
     const rect = canvas.getBoundingClientRect();
     return {
       x: evt.clientX - rect.left,
@@ -108,25 +102,22 @@
   }
 
   let drawing = false;
-  let lastX = 0, lastY = 0;
+  let lastX = 0;
+  let lastY = 0;
 
-  canvas.addEventListener('mousedown', (e) => {
+  canvas.addEventListener("mousedown", (e) => {
     drawing = true;
-    const pos = getMousePos(canvas, e);
+    const pos = getMousePos(e);
     lastX = pos.x;
     lastY = pos.y;
   });
 
-  canvas.addEventListener('mouseup', () => {
-    drawing = false;
-  });
-  canvas.addEventListener('mouseout', () => {
-    drawing = false;
-  });
+  canvas.addEventListener("mouseup", () => (drawing = false));
+  canvas.addEventListener("mouseout", () => (drawing = false));
 
-  canvas.addEventListener('mousemove', (e) => {
+  canvas.addEventListener("mousemove", (e) => {
     if (!drawing) return;
-    const pos = getMousePos(canvas, e);
+    const pos = getMousePos(e);
     const color = colorPicker.value;
     const size = +sizePicker.value;
 
@@ -138,7 +129,7 @@
   function drawLine(x1, y1, x2, y2, color, size, sendToDb) {
     ctx.strokeStyle = color;
     ctx.lineWidth = size;
-    ctx.lineCap = 'round';
+    ctx.lineCap = "round";
 
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -150,7 +141,6 @@
     }
   }
 
-  // Listen for drawing updates from others
   onChildAdded(drawingsRef, (snapshot) => {
     const { x1, y1, x2, y2, color, size } = snapshot.val();
     drawLine(x1, y1, x2, y2, color, size, false);
