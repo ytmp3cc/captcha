@@ -13,9 +13,11 @@
     canvas {
       position: fixed;
       top: 0; left: 0;
-      /* no width or height in CSS */
+      /* no CSS width/height */
       z-index: 0;
       cursor: crosshair;
+      border: 1px solid #444;
+      background-color: rgba(0, 0, 0, 0.05);
     }
     #controls {
       position: fixed;
@@ -77,6 +79,8 @@
   };
 
   const app = initializeApp(firebaseConfig);
+  console.log("Firebase app initialized:", app);
+
   const database = getDatabase(app);
   const drawingsRef = ref(database, "drawings");
 
@@ -85,20 +89,22 @@
   const colorPicker = document.getElementById("color");
   const sizePicker = document.getElementById("size");
 
-  // Set canvas size correctly
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    console.log(`Canvas resized to ${canvas.width}x${canvas.height}`);
   }
   window.addEventListener("resize", resize);
   resize();
 
   function getMousePos(evt) {
     const rect = canvas.getBoundingClientRect();
-    return {
+    const pos = {
       x: evt.clientX - rect.left,
-      y: evt.clientY - rect.top
+      y: evt.clientY - rect.top,
     };
+    // console.log("Mouse Pos:", pos);  // Uncomment if you want lots of logs
+    return pos;
   }
 
   let drawing = false;
@@ -110,15 +116,17 @@
     const pos = getMousePos(e);
     lastX = pos.x;
     lastY = pos.y;
-    // Debug log
-    // console.log('mousedown at', lastX, lastY);
+    console.log("mousedown at", lastX, lastY);
   });
 
   canvas.addEventListener("mouseup", () => {
     drawing = false;
+    console.log("mouseup");
   });
+
   canvas.addEventListener("mouseout", () => {
     drawing = false;
+    console.log("mouseout");
   });
 
   canvas.addEventListener("mousemove", (e) => {
@@ -126,6 +134,7 @@
     const pos = getMousePos(e);
     const color = colorPicker.value;
     const size = +sizePicker.value;
+    console.log("drawing line from", lastX, lastY, "to", pos.x, pos.y);
     drawLine(lastX, lastY, pos.x, pos.y, color, size, true);
     lastX = pos.x;
     lastY = pos.y;
@@ -142,12 +151,15 @@
     ctx.stroke();
 
     if (sendToDb) {
-      push(drawingsRef, { x1, y1, x2, y2, color, size });
+      push(drawingsRef, { x1, y1, x2, y2, color, size })
+        .then(() => console.log("Data pushed to Firebase"))
+        .catch(err => console.error("Firebase push error:", err));
     }
   }
 
   onChildAdded(drawingsRef, (snapshot) => {
     const { x1, y1, x2, y2, color, size } = snapshot.val();
+    // Avoid drawing the same line you just pushed (optional optimization)
     drawLine(x1, y1, x2, y2, color, size, false);
   });
 </script>
