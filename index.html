@@ -13,8 +13,9 @@
     canvas {
       position: fixed;
       top: 0; left: 0;
+      /* no width or height in CSS */
       z-index: 0;
-      /* REMOVE width/height in CSS */
+      cursor: crosshair;
     }
     #controls {
       position: fixed;
@@ -84,7 +85,7 @@
   const colorPicker = document.getElementById("color");
   const sizePicker = document.getElementById("size");
 
-  // Set canvas pixel size to window size
+  // Set canvas size correctly
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -92,7 +93,6 @@
   window.addEventListener("resize", resize);
   resize();
 
-  // Get mouse position relative to canvas
   function getMousePos(evt) {
     const rect = canvas.getBoundingClientRect();
     return {
@@ -110,17 +110,22 @@
     const pos = getMousePos(e);
     lastX = pos.x;
     lastY = pos.y;
+    // Debug log
+    // console.log('mousedown at', lastX, lastY);
   });
 
-  canvas.addEventListener("mouseup", () => (drawing = false));
-  canvas.addEventListener("mouseout", () => (drawing = false));
+  canvas.addEventListener("mouseup", () => {
+    drawing = false;
+  });
+  canvas.addEventListener("mouseout", () => {
+    drawing = false;
+  });
 
   canvas.addEventListener("mousemove", (e) => {
     if (!drawing) return;
     const pos = getMousePos(e);
     const color = colorPicker.value;
     const size = +sizePicker.value;
-
     drawLine(lastX, lastY, pos.x, pos.y, color, size, true);
     lastX = pos.x;
     lastY = pos.y;
