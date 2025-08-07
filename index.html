@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Skribl Collaborative Drawing</title>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; }
+    canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+    #controls {
+      position: fixed;
+      top: 10px; left: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 10px; border-radius: 8px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  Color: <input type="color" id="color" value="#000000" />
+  Size: <input type="range" id="size" min="1" max="30" value="5" />
+</div>
+
+<canvas id="canvas"></canvas>
+
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCscQUyJiB24BB46DArny-YLG58ogGBCOc",
+    authDomain: "skribl-49a8e.firebaseapp.com",
+    databaseURL: "https://skribl-49a8e-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "skribl-49a8e",
+    storageBucket: "skribl-49a8e.appspot.com",
+    messagingSenderId: "1006776155045",
+    appId: "1:1006776155045:web:9cc6f03c60379cb30a864c",
+    measurementId: "G-EZ8EYJ58ZC"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const drawingsRef = ref(database, "drawings");
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const colorPicker = document.getElementById('color');
+  const sizePicker = document.getElementById('size');
+
+  let drawing = false;
+  let lastX, lastY;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  canvas.addEventListener('mousedown', (e) => {
+    drawing = true;
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+  });
+
+  canvas.addEventListener('mouseup', () => drawing = false);
+  canvas.addEventListener('mouseout', () => drawing = false);
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!drawing) return;
+
+    const x = e.offsetX;
+    const y = e.offsetY;
+    const color = colorPicker.value;
+    const size = +sizePicker.value;
+
+    drawLine(lastX, lastY, x, y, color, size, true);
+    [lastX, lastY] = [x, y];
+  });
+
+  function drawLine(x1, y1, x2, y2, color, size, sendToDb) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    if (sendToDb) {
+      push(drawingsRef, { x1, y1, x2, y2, color, size });
+    }
+  }
+
+  // Listen for drawing updates from others
+  onChildAdded(drawingsRef, (snapshot) => {
+    const { x1, y1, x2, y2, color, size } = snapshot.val();
+    drawLine(x1, y1, x2, y2, color, size, false);
+  });
+
+</script>
+
+</body>
+</html>
