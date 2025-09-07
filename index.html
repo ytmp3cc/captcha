@@ -1,26 +1,90 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Hetalia Dancing</title>
-    <style>
-      body {
-        background-color: #fff; /* or change to any color you want */
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚠ PowerShell Warning</title>
+<style>
+    /* Full-page gradient background */
+    body {
         margin: 0;
-        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #ff4e50, #f9d423);
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-      }
+        color: #fff;
+        text-align: center;
+        overflow: hidden;
+    }
 
-      img {
-        max-width: 100%;
-        max-height: 100%;
-        image-rendering: pixelated;
-      }
-    </style>
-  </head>
-  <body>
-    <img src="miku.gif" alt="Miku Dancing">
-  </body>
+    /* Card container */
+    .warning-card {
+        background: rgba(0,0,0,0.7);
+        padding: 50px 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        max-width: 700px;
+        width: 90%;
+        animation: fadeIn 1.2s ease-in-out;
+    }
+
+    /* Title */
+    .warning-card h1 {
+        font-size: 3em;
+        margin-bottom: 20px;
+        text-shadow: 0 0 15px rgba(255,255,255,0.6);
+    }
+
+    /* Paragraph */
+    .warning-card p {
+        font-size: 1.3em;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    /* Discord button */
+    .discord-btn {
+        display: inline-block;
+        background: #7289da;
+        color: #fff;
+        text-decoration: none;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-size: 1.2em;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+
+    .discord-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        background: #5b6eae;
+    }
+
+    /* Footer text */
+    .footer {
+        margin-top: 40px;
+        font-size: 0.9em;
+        color: #ddd;
+        text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9);}
+        to { opacity: 1; transform: scale(1);}
+    }
+</style>
+</head>
+<body>
+    <div class="warning-card">
+        <h1>⚠ Danger!</h1>
+        <p>You just executed a potentially unsafe PowerShell command. Running <strong>iwr | iex</strong> from unknown sources can infect your computer with malware or trojans. Please do not run untrusted scripts.</p>
+        <a class="discord-btn" href="https://discord.gg/revivals" target="_blank">Learn More About Safety</a>
+        <div class="footer">Coded by Zinnia</div>
+    </div>
+</body>
 </html>
