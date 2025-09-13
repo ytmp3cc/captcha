@@ -3,106 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚠ PowerShell Warning</title>
+<title>OCR-Resistant Warped Captcha</title>
 <style>
-    /* Full-page background image with blur */
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: url('https://w0.peakpx.com/wallpaper/756/893/HD-wallpaper-windows-10-2560x1600-blue-blues-dark-default-original-screens.jpg') no-repeat center center fixed;
-        background-size: cover;
-        overflow: hidden;
-    }
-
-    /* Overlay for blur effect */
-    body::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        backdrop-filter: blur(12px) brightness(0.7);
-        z-index: 0;
-    }
-
-    /* Main card container */
-    .warning-card {
-        position: relative;
-        z-index: 1;
-        background: rgba(255,255,255,0.95);
-        border-radius: 12px;
-        padding: 40px 50px;
-        max-width: 600px;
-        width: 90%;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        text-align: center;
-        animation: fadeIn 1s ease-out;
-    }
-
-    /* Warning icon and title */
-    .warning-card h1 {
-        font-size: 2.5em;
-        color: #cc0000;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    /* Paragraph text */
-    .warning-card p {
-        font-size: 1.2em;
-        color: #111;
-        line-height: 1.6;
-        margin-bottom: 30px;
-    }
-
-    /* Discord button */
-    .discord-btn {
-        display: inline-block;
-        background: #7289da;
-        color: #fff;
-        text-decoration: none;
-        padding: 12px 28px;
-        border-radius: 8px;
-        font-size: 1.1em;
-        font-weight: bold;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-    }
-
-    .discord-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-        background: #5b6eae;
-    }
-
-    /* Footer */
-    .footer {
-        margin-top: 25px;
-        font-size: 0.9em;
-        color: #555;
-    }
-
-    /* Fade-in animation */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-20px);}
-        to { opacity: 1; transform: translateY(0);}
-    }
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.captcha-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 25px 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-align: center;
+  width: 450px;
+}
+.captcha-logo {
+  max-width: 100%;
+  margin-bottom: 15px;
+}
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  user-select: none;
+}
+.fake-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 3px;
+  display: inline-block;
+  position: relative;
+}
+.fake-checkbox.checked::after {
+  content: "✔";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  color: #4285f4;
+  font-weight: bold;
+  font-size: 18px;
+}
+canvas {
+  margin: 10px 0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+input {
+  width: 60%;
+  padding: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  text-align: center;
+}
+button {
+  background: #4285f4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+.captcha-result {
+  margin-top: 10px;
+  font-size: 14px;
+}
 </style>
 </head>
 <body>
-    <div class="warning-card">
-        <h1>⚠ Warning!</h1>
-        <p>You have executed a potentially unsafe PowerShell command. Running <strong>iwr | iex</strong> from unknown sources may compromise your computer and infect it with malware or trojans.</p>
-        <a class="discord-btn" href="https://discord.gg/revivals" target="_blank">Learn More About Safety</a>
-        <div class="footer">Coded by Zinnia</div>
-    </div>
+
+<div class="captcha-container">
+  <img class="captcha-logo" src="https://files.catbox.moe/i256vh.png" alt="Logo">
+  <div class="checkbox-wrapper" id="checkboxWrapper">
+    <div class="fake-checkbox" id="captchaCheckbox"></div>
+    <span>I am not a robot</span>
+  </div>
+  <canvas id="captchaCanvas" width="400" height="140" style="display:none;"></canvas>
+  <input type="text" id="captchaInput" placeholder="Type the characters" style="display:none;">
+  <button id="verifyBtn" style="display:none;">Verify</button>
+  <div class="captcha-result" id="captchaResult"></div>
+</div>
+
+<script>
+const checkboxWrapper = document.getElementById('checkboxWrapper');
+const checkbox = document.getElementById('captchaCheckbox');
+const canvas = document.getElementById('captchaCanvas');
+const ctx = canvas.getContext('2d');
+const input = document.getElementById('captchaInput');
+const verifyBtn = document.getElementById('verifyBtn');
+const result = document.getElementById('captchaResult');
+
+let verified = false;
+let captchaText = '';
+const fonts = ["Arial","Verdana","Tahoma","Georgia","Courier New","Impact"];
+
+// generates captcha string
+function generateText() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let text = '';
+  for(let i=0;i<6;i++){
+    text += chars.charAt(Math.floor(Math.random()*chars.length));
+  }
+  return text;
+}
+
+// draws warped characters
+function drawChar(ctx, char, x, y, fontSize, font) {
+  ctx.save();
+  // strong rotation & scale
+  const angle = (Math.random() - 0.5) * 1.0;
+  const scaleX = 1 + (Math.random() - 0.5) * 0.8;
+  const scaleY = 1 + (Math.random() - 0.5) * 0.8;
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.scale(scaleX, scaleY);
+  ctx.font = `${fontSize}px ${font}`;
+  ctx.fillStyle = `rgb(${Math.random()*120},${Math.random()*120},${Math.random()*120})`;
+
+  // creates temp canvas for character disrtoion
+  const tempCanvas = document.createElement('canvas');
+  const tctx = tempCanvas.getContext('2d');
+  tempCanvas.width = fontSize*1.5;
+  tempCanvas.height = fontSize*1.5;
+  tctx.font = `${fontSize}px ${font}`;
+  tctx.fillStyle = ctx.fillStyle;
+  tctx.fillText(char, fontSize*0.25, fontSize*0.9);
+
+  const imgData = tctx.getImageData(0,0,tempCanvas.width,tempCanvas.height);
+  const data = imgData.data;
+  // apply per-pixel warping (ripple effect)
+  const newData = ctx.createImageData(tempCanvas.width,tempCanvas.height);
+  for(let j=0;j<tempCanvas.height;j++){
+    for(let i=0;i<tempCanvas.width;i++){
+      const dx = Math.floor(i + 4*Math.sin(j/5 + Math.random()));
+      const dy = Math.floor(j + 4*Math.cos(i/5 + Math.random()));
+      const src = ((Math.max(0,Math.min(dy,tempCanvas.height-1))*tempCanvas.width + Math.max(0,Math.min(dx,tempCanvas.width-1)))*4);
+      const dst = (j*tempCanvas.width + i)*4;
+      newData.data[dst] = data[src];
+      newData.data[dst+1] = data[src+1];
+      newData.data[dst+2] = data[src+2];
+      newData.data[dst+3] = data[src+3];
+    }
+  }
+  ctx.drawImage(tempCanvas, 0, 0);
+  ctx.putImageData(newData, -fontSize*0.25, -fontSize*0.9);
+
+  ctx.restore();
+}
+
+// draws noisy curved lines
+function drawCurvedLines(ctx, count) {
+  for(let i=0;i<count;i++){
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(${Math.random()*200},${Math.random()*200},${Math.random()*200},0.4)`;
+    ctx.lineWidth = 1 + Math.random()*3;
+    const startY = Math.random()*canvas.height;
+    const cpX = Math.random()*canvas.width;
+    const cpY = Math.random()*canvas.height;
+    const endY = Math.random()*canvas.height;
+    ctx.moveTo(0,startY);
+    ctx.quadraticCurveTo(cpX, cpY, canvas.width, endY);
+    ctx.stroke();
+  }
+}
+
+// adds random noise dots (probably doesnt do shit to defeat ocr)
+function addNoise(ctx, count){
+  for(let i=0;i<count;i++){
+    ctx.fillStyle = `rgba(0,0,0,${Math.random()*0.3})`;
+    ctx.beginPath();
+    ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*3+1,0,Math.PI*2);
+    ctx.fill();
+  }
+}
+
+// generates the captcha itself
+function generateCaptcha() {
+  canvas.style.display = 'block';
+  input.style.display = 'block';
+  verifyBtn.style.display = 'inline-block';
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  captchaText = generateText();
+
+  // the backgoerund with noise
+  ctx.fillStyle = '#f0f0f0';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  addNoise(ctx, 300);
+
+  // draws the curved like arcs
+  drawCurvedLines(ctx, 12);
+
+  // draws the characters
+  let xOffset = 15;
+  for(let i=0;i<captchaText.length;i++){
+    const char = captchaText[i];
+    const fontSize = 35 + Math.random()*20;
+    const font = fonts[Math.floor(Math.random()*fonts.length)];
+    drawChar(ctx, char, xOffset, 70, fontSize, font);
+    xOffset += fontSize*0.6;
+  }
+
+  // extra random lines lmao
+  drawCurvedLines(ctx, 6);
+}
+
+// checkbox click
+checkboxWrapper.addEventListener('click', () => {
+  if(verified) return;
+  checkboxWrapper.style.pointerEvents = 'none';
+  result.textContent = 'Verifying...';
+  setTimeout(()=>{
+    generateCaptcha();
+    checkboxWrapper.style.pointerEvents = 'auto';
+    result.textContent = '';
+  }, 500);
+});
+
+// verification
+verifyBtn.addEventListener('click', () => {
+  if(input.value.toUpperCase() === captchaText){
+    checkbox.classList.add('checked');
+    result.textContent = '✔ Verified!';
+    result.style.color = 'green';
+    verified = true;
+    canvas.style.display = 'none';
+    input.style.display = 'none';
+    verifyBtn.style.display = 'none';
+  } else {
+    result.textContent = '✖ Incorrect, try again!';
+    result.style.color = 'red';
+    input.value = '';
+    generateCaptcha();
+  }
+});
+</script>
+
 </body>
 </html>
